@@ -17,10 +17,11 @@ type DatabaseConfig struct {
 	Password     string `toml:"password"`
 	Host         string `toml:"host"`
 	Port         uint16 `toml:"port"`
+	SSlMode      string `toml:"ssl_mode"`
 }
 
-// ReadConfig Read config file
-func (c *Config) ReadConfig(path string) {
+// ReadTomlConfig Read config file
+func (c *Config) ReadTomlConfig(path string) {
 	if _, err := toml.DecodeFile(path, &c); err != nil {
 		log.Fatal(err)
 	}

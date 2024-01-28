@@ -3,15 +3,22 @@ package main
 import (
 	"BalancingServers/config"
 	"BalancingServers/endpoints"
+	"BalancingServers/repository"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"log"
 )
 
 func main() {
 
 	var conf config.Config
-	conf.ReadConfig("config.toml")
+	conf.ReadTomlConfig("config.toml")
+
+	_, err := repository.NewPostgresDB(conf.Database)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	runWebServer(conf.Host, conf.Port)
 }
