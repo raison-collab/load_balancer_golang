@@ -1,26 +1,29 @@
 package main
 
 import (
+	"BalancingServers/config"
 	"BalancingServers/endpoints"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 )
 
-const port uint16 = 8081
-
 func main() {
-	runWebServer(port)
-	//runGinWebServer(port)
+
+	var conf config.Config
+	conf.ReadConfig("config.toml")
+
+	runWebServer(conf.Host, conf.Port)
 }
 
-func runWebServer(port uint16) {
+// Run wev server with routing
+func runWebServer(host string, port uint16) {
 	router := gin.Default()
 
 	router.POST("/post_task", endpoints.PostTaskHandler).GET("/post_task", endpoints.PostTaskGetMethodHandler)
 
 	// Run server
-	er := router.Run(fmt.Sprintf(":%d", port))
+	er := router.Run(fmt.Sprintf("%s:%d", host, port))
 	if er != nil {
 		log.Fatal(er)
 	}
