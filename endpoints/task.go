@@ -1,11 +1,10 @@
 package endpoints
 
 import (
-	"BalancingServers/repository"
-	"fmt"
+	"BalancingServers/config"
+	"BalancingServers/repository/postgres"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
-	"log"
 	"net/http"
 )
 
@@ -23,6 +22,8 @@ func PostTaskHandler(c *gin.Context) {
 		StatusCode: http.StatusOK,
 	}
 
+	var identifyData *IdentifyTaskData = &IdentifyTaskData{}
+
 	ct := c.Request.Header.Get("Content-Type")
 
 	if ct != "application/json" {
@@ -39,22 +40,22 @@ func PostTaskHandler(c *gin.Context) {
 
 	dataJsonMessage.Data = postTask
 
+	var pg postgres.PG
+	var cfg config.Config
+
+	cfg.ReadTomlConfig("config.toml")
+	pg.NewPostgresDB(cfg.Database)
+
+	var lastInsertId uint
+
+	_ = pg.DB.QueryRow("INSERT INTO tasks_table (bash, ram, disk, cpu, priority) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+		postTask.Bash, postTask.Ram, postTask.Disk, postTask.CPU, postTask.Priority).Scan(&lastInsertId)
+
+	identifyData.ID = lastInsertId
+
+	dataJsonMessage.IdentifyData = *identifyData
+
 	c.JSON(http.StatusOK, *dataJsonMessage)
-
-	var repo repository.Repository
-
-	res, err := repo.Postgres.DB.Exec("INSERT INTO task(bash, ram, disk, cpu, priority) VALUES ($1, $2, $3, $4, $5)",
-		postTask.Bash, postTask.Ram, postTask.Disk, postTask.CPU, postTask.Priority)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	lastInsertId, err := res.LastInsertId()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(lastInsertId)
 
 }
 

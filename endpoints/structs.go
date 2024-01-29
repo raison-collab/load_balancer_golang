@@ -9,8 +9,7 @@ type PostTask struct {
 }
 
 type IdentifyTaskData struct {
-	Token string `json:"token"`
-	Hash  string `json:"hash"`
+	ID uint `json:"id"`
 }
 
 type ErrorJsonMessage struct {
