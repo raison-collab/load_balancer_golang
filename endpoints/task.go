@@ -1,36 +1,13 @@
 package endpoints
 
 import (
-	"BalancingServers/token_generator"
-	"encoding/json"
+	"BalancingServers/repository"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"log"
 	"net/http"
 )
-
-type PostTask struct {
-	Bash string `json:"bash"`
-	Ram  uint16 `json:"ram"`
-}
-
-type IdentifyTaskData struct {
-	Token string `json:"token"`
-	Hash  string `json:"hash"`
-}
-
-type ErrorJsonMessage struct {
-	Message    string `json:"message"`
-	Error      string `json:"error"`
-	StatusCode uint16 `json:"status_code"`
-}
-
-type DataJsonMessage struct {
-	Message      string           `json:"message"`
-	StatusCode   uint16           `json:"status_code"`
-	Data         interface{}      `json:"data"`
-	IdentifyData IdentifyTaskData `json:"identify_data"`
-}
 
 func PostTaskHandler(c *gin.Context) {
 	var postTask PostTask
@@ -62,25 +39,22 @@ func PostTaskHandler(c *gin.Context) {
 
 	dataJsonMessage.Data = postTask
 
-	postTaskBytes, err := json.Marshal(postTask)
+	c.JSON(http.StatusOK, *dataJsonMessage)
+
+	var repo repository.Repository
+
+	res, err := repo.Postgres.DB.Exec("INSERT INTO task(bash, ram, disk, cpu, priority) VALUES ($1, $2, $3, $4, $5)",
+		postTask.Bash, postTask.Ram, postTask.Disk, postTask.CPU, postTask.Priority)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var identifyData *IdentifyTaskData = &IdentifyTaskData{}
+	lastInsertId, err := res.LastInsertId()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	var hasher token_generator.Hash
-	hasher.GenerateHash(string(postTaskBytes))
-
-	var token token_generator.Token
-	token.GenerateToken(hasher.Hash)
-
-	identifyData.Hash = hasher.Hash
-	identifyData.Token = token.Token
-
-	dataJsonMessage.IdentifyData = *identifyData
-
-	c.JSON(http.StatusOK, *dataJsonMessage)
+	fmt.Println(lastInsertId)
 
 }
 
