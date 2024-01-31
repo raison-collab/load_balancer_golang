@@ -43,8 +43,8 @@ func PostTaskHandler(c *gin.Context) {
 	var pg postgres.PG
 	var cfg config.Config
 
-	cfg.ReadTomlConfig("config.toml")
-	pg.NewPostgresDB(cfg.Database)
+	cfg.SetupConfig()
+	pg.New()
 
 	var lastInsertId uint
 

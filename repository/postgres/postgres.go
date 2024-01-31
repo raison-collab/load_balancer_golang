@@ -11,6 +11,13 @@ type PG struct {
 	DB *sqlx.DB
 }
 
+func (p *PG) New() {
+	var cfg config.Config
+	cfg.SetupConfig()
+
+	p.NewPostgresDB(cfg.Database)
+}
+
 func (p *PG) NewPostgresDB(cfg config.DatabaseConfig) {
 	db, err := sqlx.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s dbname=%s password=%s sslmode=%s",
 		cfg.Host, cfg.Port, cfg.Username, cfg.DatabaseName, cfg.Password, cfg.SSlMode,

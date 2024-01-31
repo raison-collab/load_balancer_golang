@@ -26,3 +26,7 @@ func (c *Config) ReadTomlConfig(path string) {
 		log.Fatal(err)
 	}
 }
+
+func (c *Config) SetupConfig() {
+	c.ReadTomlConfig("config.toml")
+}
